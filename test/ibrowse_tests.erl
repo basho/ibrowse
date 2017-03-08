@@ -130,6 +130,15 @@ balanced_connections() ->
 
     ?assertEqual(lists:duplicate(MaxSessions, BalancedNumberOfRequestsPerConnection), Counts).
 
+%% This test sometimes fails with the following error
+%%         ibrowse_tests: running_server_fixture_test_ (Pipeline too small signals retries)...*failed*
+%% in function ibrowse_tests:'-small_pipeline/0-fun-4-'/2 (/Users/raghav/github/ibrowse/_build/test/lib/ibrowse/test/ibrowse_tests.erl, line 150)
+%% in call from ibrowse_tests:small_pipeline/0 (/Users/raghav/github/ibrowse/_build/test/lib/ibrowse/test/ibrowse_tests.erl, line 150)
+%% **error:{assertEqual_failed,[{module,ibrowse_tests},
+%%                      {line,150},
+%%                      {expression,"Counts"},
+%%                      {expected,"\n\n\n\n\n\n\n\n\n\n"},
+%%                      {value,"\n\t\t\n\n\n\n\t\n\n"}]}
 small_pipeline() ->
     MaxSessions = 10,
     MaxPipeline = 10,
