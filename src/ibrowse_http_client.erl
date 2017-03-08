@@ -585,7 +585,7 @@ do_connect(Host, Port, Options, #state{is_ssl      = true,
       _ ->
         error
     end;
-    
+
 do_connect(Host, Port, Options, _State, Timeout) ->
     Socks5Host = get_value(socks5_host, Options, undefined),
     Sock_options = get_sock_options(Host, Options, []),
@@ -2031,13 +2031,13 @@ cancel_timer(Ref, {eat_message, Msg}) ->
             ok
     end.
 
+-ifdef(NO_UNIQUE_INTEGER).
 make_req_id() ->
-    case catch erlang:unique_integer() of
-        {'EXIT', _} ->
-            erlang:apply(erlang, now, []);
-        V ->
-            V
-    end.
+    erlang:now().
+-else.
+make_req_id() ->
+    erlang:unique_integer().
+-endif.
 
 to_lower(Str) when is_binary(Str) ->
     to_lower(binary_to_list(Str));
