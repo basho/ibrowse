@@ -174,7 +174,7 @@ handle_call({send_req, _}, _From, #state{is_closing = true} = State) ->
     {reply, {error, connection_closing}, State};
 
 handle_call({send_req, _}, _From, #state{proc_state = ?dead_proc_walking} = State) ->
-    shutting_down(State),    
+    shutting_down(State),
     {reply, {error, connection_closing}, State};
 
 handle_call({send_req, {Url, Headers, Method, Body, Options, Timeout}},
