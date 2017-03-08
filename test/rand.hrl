@@ -1,0 +1,7 @@
+-ifdef(NO_RAND_MODULE).
+-define(rand_seed(S),       random:seed(S)).
+-define(rand_uniform(N),    random:uniform(N)).
+-else.
+-define(rand_seed(S),       rand:seed(exsplus, S)).
+-define(rand_uniform(N),    rand:uniform(N)).
+-endif.

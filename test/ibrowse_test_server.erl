@@ -4,6 +4,9 @@
 %%% Created : 17 Oct 2010 by Chandrashekhar Mullaparthi <chandrashekhar.mullaparthi@t-mobile.co.uk>
 
 -module(ibrowse_test_server).
+
+-include("rand.hrl").
+
 -export([
          start_server/0,
          start_server/2,
@@ -141,7 +144,7 @@ server_loop(Sock, Sock_type, #request{headers = Headers} = Req) ->
                     server_loop(Sock, Sock_type, #request{});
 		collect_body ->
 		    server_loop(Sock, Sock_type, Req_1)
-	    end;	    
+	    end;
         {http, Sock, {http_error, Err}} ->
             io:format("Error parsing HTTP request:~n"
                       "Req so far : ~p~n"
@@ -279,7 +282,7 @@ process_request(Sock, Sock_type,
     #request{method='GET',
         headers = _Headers,
         uri = {abs_path, "/ibrowse_send_file_conn_close"}}) ->
-    Resp = <<"HTTP/1.1 200 OK\r\nServer: Apache-Coyote/1.1\r\nDate: Wed, 04 Apr 2012 16:53:49 GMT\r\nConnection: close\r\n\r\nblahblah-">>,    
+    Resp = <<"HTTP/1.1 200 OK\r\nServer: Apache-Coyote/1.1\r\nDate: Wed, 04 Apr 2012 16:53:49 GMT\r\nConnection: close\r\n\r\nblahblah-">>,
     do_send(Sock, Sock_type, Resp),
     timer:sleep(1000),
     do_send(Sock, Sock_type, <<"blahblah">>),
@@ -290,7 +293,7 @@ process_request(Sock, Sock_type, Req) ->
     do_trace("Recvd req: ~p~n", [Req]),
     Resp = <<"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n">>,
     do_send(Sock, Sock_type, Resp),
-    timer:sleep(random:uniform(100)).
+    timer:sleep(?rand_uniform(100)).
 
 do_send(Sock, tcp, Resp) ->
     gen_tcp:send(Sock, Resp);

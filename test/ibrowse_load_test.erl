@@ -1,6 +1,8 @@
 -module(ibrowse_load_test).
 -compile(export_all).
 
+-include("rand.hrl").
+
 -define(ibrowse_load_test_counters, ibrowse_load_test_counters).
 
 start(Num_workers, Num_requests, Max_sess) ->
@@ -95,7 +97,7 @@ spawn_workers(0, _Num_requests, _Parent, Acc) ->
     lists:reverse(Acc);
 spawn_workers(Num_workers, Num_requests, Parent, Acc) ->
     Pid_ref = spawn_monitor(fun() ->
-                                    random:seed(os:timestamp()),
+                                    ?rand_seed(os:timestamp()),
                                     case catch worker_loop(Parent, Num_requests) of
                                         {'EXIT', Rsn} ->
                                             io:format("Worker crashed with reason: ~p~n", [Rsn]);
@@ -135,7 +137,7 @@ wait_for_workers([{Pid, Pid_ref} | T] = Pids) ->
 worker_loop(Parent, 0) ->
     Parent ! {done, self()};
 worker_loop(Parent, N) ->
-    Delay = random:uniform(100),
+    Delay = ?rand_uniform(100),
     Url = case Delay rem 10 of
               %% Change 10 to some number between 0-9 depending on how
               %% much chaos you want to introduce into the server
