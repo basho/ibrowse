@@ -1370,7 +1370,7 @@ send_queued_requests([], State) ->
     State#state{tunnel_setup_queue = []};
 send_queued_requests([{From, Url, Headers, Method, Body, Options, Timeout} | Q],
                      State) ->
-    {noreply, State_1} = 
+    {noreply, State_1} =
         send_req_1(From, Url, Headers, Method, Body, Options, Timeout, State),
     send_queued_requests(Q, State_1).
 
@@ -2039,13 +2039,13 @@ cancel_timer(Ref, {eat_message, Msg}) ->
             ok
     end.
 
+-ifdef(NO_UNIQUE_INTEGER).
 make_req_id() ->
-    case catch erlang:unique_integer() of
-        {'EXIT', _} ->
-            erlang:apply(erlang, now, []);
-        V ->
-            V
-    end.
+    erlang:now().
+-else.
+make_req_id() ->
+    erlang:unique_integer().
+-endif.
 
 to_lower(Str) when is_binary(Str) ->
     to_lower(binary_to_list(Str));
