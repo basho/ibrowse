@@ -1,13 +1,21 @@
-{application, ibrowse,
- [
-  {description, "Erlang HTTP client application"},
-  {vsn, git},
-  {registered, [ibrowse_sup, ibrowse]},
-  {applications, [kernel, stdlib, public_key, ssl]},
-  {env, []},
-  {mod, {ibrowse_app, []}},
-  {maintainers, ["Chandrashekhar Mullaparthi"]},
-  {licenses, ["GPLv2", "BSD"]},
-  {modules, []},
-  {links, [{"Github", "https://github.com/cmullaparthi/ibrowse"}]}
+%% -*- mode: erlang; erlang-indent-level: 4; indent-tabs-mode: nil -*-
+{application, ibrowse, [
+    {description,  "Erlang HTTP client application"},
+    {vsn,          git},
+    {applications, [
+        kernel,
+        stdlib,
+        public_key,
+        ssl
+    ]},
+    {registered,   [
+        ibrowse_sup,
+        ibrowse
+    ]},
+    {env,          []},
+    {mod,          {ibrowse_app, []}},
+    {maintainers,  ["Chandrashekhar Mullaparthi"]},
+    {licenses,     ["GPLv2", "BSD"]},
+    {modules,      []},
+    {links,        [{"Github", "https://github.com/cmullaparthi/ibrowse"}]}
  ]}.
