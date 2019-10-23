@@ -142,12 +142,26 @@ small_pipeline() ->
     times(RequestsSent, fun() -> spawn(Fun) end),
 
     timer:sleep(?PAUSE_FOR_CONNECTIONS_MS),  %% Wait for everyone to get in line
-
     ibrowse:show_dest_status("localhost", 8181),
-    Counts = [Count || {_Pid, Count} <- ibrowse_test_server:get_conn_pipeline_depth()],
-    ?assertEqual(MaxSessions, length(Counts)),
+    
+    Expected = lists:duplicate(MaxSessions, FullRequestsPerConnection),
+    CheckFun =
+        fun(_X, ItWorks) ->
+            case ItWorks of
+                true ->
+                    true;
+                false ->
+                    timer:sleep(500),
+                    Counts =
+                        [Count || {_Pid, Count}
+                            <- ibrowse_test_server:get_conn_pipeline_depth()],
+                    ?assertEqual(MaxSessions, length(Counts)),
+                    Expected == Counts
+            end
+        end,
 
-    ?assertEqual(lists:duplicate(MaxSessions, FullRequestsPerConnection), Counts),
+    ?assertMatch(true, lists:foldl(CheckFun, false, lists:seq(1, 10))),
+
 
     Response = ibrowse:send_req(?BASE_URL ++ "/never_respond", [], get, [], [{max_sessions, MaxSessions}, {max_pipeline_size, MaxPipeline}], ?SHORT_TIMEOUT_MS),
 

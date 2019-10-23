@@ -696,7 +696,7 @@ do_send_body_1({Resp, Source}, State, TE, Acc) when is_function(Source) ->
         {ok, Data} ->
             Acc_1 = case TE of
                         true ->
-                            ok = do_send(maybe_chunked_encode(Data, TE), State),
+                            ok = do_send(chunked_encode(Data), State),
                             Acc;
                         false ->
                             [Data | Acc]
@@ -707,7 +707,7 @@ do_send_body_1({Resp, Source}, State, TE, Acc) when is_function(Source) ->
         {ok, Data, New_source_state} ->
             Acc_1 = case TE of
                         true ->
-                            ok = do_send(maybe_chunked_encode(Data, TE), State),
+                            ok = do_send(chunked_encode(Data), State),
                             Acc;
                         false ->
                             [Data | Acc]
@@ -734,9 +734,7 @@ do_send_body_1({Resp, Source}, State, TE, Acc) when is_function(Source) ->
             Err
     end.
 
-maybe_chunked_encode(Data, false) ->
-    Data;
-maybe_chunked_encode(Data, true) ->
+chunked_encode(Data) ->
     [?dec2hex(iolist_size(Data)), "\r\n", Data, "\r\n"].
 
 do_close(#state{socket = undefined})            ->  ok;
@@ -1372,17 +1370,9 @@ send_queued_requests([], State) ->
     State#state{tunnel_setup_queue = []};
 send_queued_requests([{From, Url, Headers, Method, Body, Options, Timeout} | Q],
                      State) ->
-    case send_req_1(From, Url, Headers, Method, Body, Options, Timeout, State) of
-        {noreply, State_1} ->
-            send_queued_requests(Q, State_1);
-        Err ->
-            do_trace("Error sending queued SSL request: ~n"
-                     "URL     : ~s~n"
-                     "Method  : ~p~n"
-                     "Headers : ~p~n", [Url, Method, Headers]),
-            do_error_reply(State, {error, {send_failed, Err}}),
-            {error, send_failed}
-    end.
+    {noreply, State_1} = 
+        send_req_1(From, Url, Headers, Method, Body, Options, Timeout, State),
+    send_queued_requests(Q, State_1).
 
 is_connection_closing("HTTP/0.9", _)       -> true;
 is_connection_closing(_, "close")          -> true;
@@ -2179,8 +2169,6 @@ get_header_value(Name, Headers, Default_val) ->
     case lists:keysearch(Name, 1, Headers) of
         false ->
             Default_val;
-        {value, {_, Val}} when is_binary(Val) ->
-            binary_to_list(Val);
         {value, {_, Val}} ->
             Val
     end.
