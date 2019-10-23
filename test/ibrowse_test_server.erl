@@ -60,7 +60,7 @@ stop_server(Port) ->
     catch server_proc_name(Port) ! stop,
     ibrowse_socks_server:stop(8282),
     ibrowse_socks_server:stop(8383),
-    timer:sleep(2000),  % wait for server to receive msg and unregister
+    timer:sleep(?ACCEPT_TIMEOUT_MS),  % wait for server to receive msg and unregister
     ok.
 
 get_conn_pipeline_depth() ->

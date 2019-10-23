@@ -43,7 +43,8 @@ running_server_fixture_test_() ->
         ?TIMEDTEST("Pipelines refill", pipeline_refill),
         ?TIMEDTEST("Timeout closes pipe", closing_pipes),
         ?TIMEDTEST("Requests are balanced over connections", balanced_connections),
-        ?TIMEDTEST("Pipeline too small signals retries", small_pipeline),
+        ?TIMEDTEST("Pipeline too small signals retries", small_pipeline_1),
+        ?TIMEDTEST("Pipeline too small signals retries", small_pipeline_2),
         ?TIMEDTEST("Dest status can be gathered", status)
      ]
     }.
@@ -130,28 +131,42 @@ balanced_connections() ->
 
     ?assertEqual(lists:duplicate(MaxSessions, BalancedNumberOfRequestsPerConnection), Counts).
 
-small_pipeline() ->
-    MaxSessions = 10,
-    MaxPipeline = 10,
-    RequestsSent = 100,
-    FullRequestsPerConnection = 10,
+small_pipeline_1() ->
+    small_pipeline(100).
+
+small_pipeline_2() ->
+    small_pipeline(10).
+
+small_pipeline(N) ->
+    %% Note - https://developer.mozilla.org/en-US/docs/Web/HTTP/Connection_management_in_HTTP_1.x
+    %% See section in above on Domain sharding - having more than 5 sessions
+    %% to a single server runs the risk of DoS protection being invoked.    
+    MaxSessions = 5,
+    MaxPipeline = N,
+    RequestsSent = MaxSessions * N,
+    FullRequestsPerConnection = N,
 
     ?assertEqual([], ibrowse_test_server:get_conn_pipeline_depth()),
-
-    Fun = fun() -> ibrowse:send_req(?BASE_URL ++ "/never_respond", [], get, [], [{max_sessions, MaxSessions}, {max_pipeline_size, MaxPipeline}], ?SHORT_TIMEOUT_MS) end,
-    times(RequestsSent, fun() -> spawn(Fun) end),
+    
+    RequestFun =
+        fun() ->
+            ibrowse:send_req(?BASE_URL ++ "/never_respond",
+                                [], get, [],
+                                [{max_sessions, MaxSessions},
+                                    {max_pipeline_size, MaxPipeline}],
+                                    ?SHORT_TIMEOUT_MS)
+        end,
+    times(RequestsSent, fun() -> spawn(RequestFun) end),
 
     timer:sleep(?PAUSE_FOR_CONNECTIONS_MS),  %% Wait for everyone to get in line
-
-    ibrowse:show_dest_status("localhost", 8181),
-    Counts = [Count || {_Pid, Count} <- ibrowse_test_server:get_conn_pipeline_depth()],
-    ?assertEqual(MaxSessions, length(Counts)),
-
-    ?assertEqual(lists:duplicate(MaxSessions, FullRequestsPerConnection), Counts),
-
-    Response = ibrowse:send_req(?BASE_URL ++ "/never_respond", [], get, [], [{max_sessions, MaxSessions}, {max_pipeline_size, MaxPipeline}], ?SHORT_TIMEOUT_MS),
-
-    ?assertEqual({error, retry_later}, Response).
+    
+    Counts =
+        [Count || {_Pid, Count}
+            <- ibrowse_test_server:get_conn_pipeline_depth()],
+    Counts0 = 
+        lists:filter(fun(C) -> C == FullRequestsPerConnection end, Counts),
+    ?assertMatch(MaxSessions, length(Counts0)),
+    ?assertMatch({error, retry_later}, RequestFun()).
 
 status() ->
     MaxSessions = 10,
