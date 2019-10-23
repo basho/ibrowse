@@ -1,0 +1,17 @@
+minimum_reviewers: 2
+merge: true
+merge_method: merge
+build_steps:
+  # clean relevant profiles to ensure they succeed
+  - rebar3 clean --all
+  - rebar3 as test clean --all
+  # compile relevant profiles to ensure they succeed
+  - rebar3 compile
+  - rebar3 as test compile
+  # these are the real tests
+  - rebar3 eunit
+  - rebar3 dialyzer
+  # last, but not least, do the docs build?
+  - rebar3 edoc
+org_mode: true
+timeout: 1800
