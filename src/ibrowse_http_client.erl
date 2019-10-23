@@ -2039,13 +2039,8 @@ cancel_timer(Ref, {eat_message, Msg}) ->
             ok
     end.
 
--ifdef(NO_UNIQUE_INTEGER).
-make_req_id() ->
-    erlang:now().
--else.
 make_req_id() ->
     erlang:unique_integer().
--endif.
 
 to_lower(Str) when is_binary(Str) ->
     to_lower(binary_to_list(Str));
