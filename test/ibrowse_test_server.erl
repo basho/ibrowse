@@ -291,7 +291,7 @@ process_request(Sock, Sock_type, Req) ->
     do_trace("Recvd req: ~p~n", [Req]),
     Resp = <<"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n">>,
     do_send(Sock, Sock_type, Resp),
-    timer:sleep(rand:uniform(100)).
+    timer:sleep(random:uniform(100)).
 
 do_send(Sock, tcp, Resp) ->
     gen_tcp:send(Sock, Resp);

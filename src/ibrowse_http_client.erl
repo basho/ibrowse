@@ -2040,7 +2040,8 @@ cancel_timer(Ref, {eat_message, Msg}) ->
     end.
 
 make_req_id() ->
-    erlang:unique_integer().
+    {A, B, C} = os:timestamp(),
+    {A, B, C, random:uniform(65536)}.
 
 to_lower(Str) when is_binary(Str) ->
     to_lower(binary_to_list(Str));
