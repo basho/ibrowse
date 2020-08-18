@@ -6,7 +6,7 @@
 /_build/
 /_checkouts
 /deps
-/rebar.lock
+rebar.lock
 
 # work environments
 *.bak
